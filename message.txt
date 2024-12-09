@@ -1,0 +1,781 @@
+import pygame,random,time
+
+#Layout
+defaultScale= [250,140]
+layout1_img = pygame.image.load('PongLegendsImages/Fussball.png')
+layout2_img = pygame.image.load('PongLegendsImages/SchwarzesLayout.png')
+layout3_img = pygame.image.load('PongLegendsImages/Dunkel.png')
+layout1_img = pygame.transform.scale(layout1_img, defaultScale)
+layout2_img = pygame.transform.scale(layout2_img, defaultScale)
+layout3_img = pygame.transform.scale(layout3_img, defaultScale)
+#Farben
+ 
+white =     (255, 255, 255)
+ 
+blue =      (  0,   0, 255)
+ 
+green =     (  0, 255,   0)
+ 
+red =       (255,   0,   0)
+ 
+black=      (0  ,   0,   0)
+ 
+gray=       (192, 192, 192)
+ 
+gelb=       (255, 255,   0)
+ 
+dunkelgrün= (69,  139,   0)
+ 
+dunkelgrau= (90, 90, 90)
+ 
+#Window
+ 
+pygame.init()
+clock = pygame.time.Clock()
+ 
+screen_width = 800
+ 
+screen_length = 1200
+ 
+größe = screen_length,screen_width
+ 
+run = True
+ 
+screen = pygame.display.set_mode(größe)
+ 
+pygame.display.set_caption("Pong Legends")
+
+icon = pygame.image.load('PongLegendsImages/favicon.ico')
+pygame.display.set_icon(icon)
+ 
+#Player LEFT
+ 
+move_down = False
+ 
+move_up = False
+ 
+rechteck_y = 270
+ 
+ 
+ 
+#Player RIGHT
+difficulty_easy = 1.0
+difficulty_medium = 2.0
+difficulty_hard = 3.2
+difficulty_impossible = 5.0
+ 
+ 
+ 
+def bot(ball_y, rechteck2_y, ball_x_direction):
+ 
+    computer_speed = difficulty_hard
+ 
+    if ball_x >= 600 and ball_x_direction == 1:
+ 
+        if rechteck2_y >= ball_y:
+ 
+            rechteck2_y -= computer_speed
+ 
+        if rechteck2_y + 135 <= ball_y:
+ 
+            rechteck2_y += computer_speed
+ 
+    elif rechteck2_y <= 300 and ball_x_direction -1:
+ 
+        rechteck2_y += computer_speed
+ 
+    elif rechteck2_y >= 300 and ball_x_direction -1:
+ 
+        rechteck2_y -= computer_speed
+ 
+    return(rechteck2_y)
+ 
+move_down2 = False
+ 
+move_up2 = False
+ 
+rechteck2_y = 270
+ 
+ 
+ 
+#Ball
+ 
+ball_x = 600
+ 
+ball_y = 400
+ 
+ball_speed_y = 3.6
+ 
+ball_speed_x = 3.5
+ 
+ball_x_direction = 0
+ 
+ball_y_direction = 0
+ 
+ 
+ 
+def collusions(ball,rechteck,rechteck2,ball_x_direction, ball_speed_x, ball_speed_y):
+ 
+    if ball.colliderect(rechteck):
+ 
+        ball_x_direction = 1
+ 
+    elif ball.colliderect(rechteck2):
+ 
+        ball_x_direction = -1
+ 
+    return ball_x_direction
+ 
+ 
+ 
+# Movement
+ 
+def ball_movement(ball_x_direction,ball_y_direction,ball_x,ball_y,ball_speed_y,ball_speed_x):
+    
+    
+ 
+    if spielPausieren == False: 
+        #RECHTS
+    
+        if ball_x_direction == 1 and ball_x < 1180:
+    
+            ball_x += ball_speed_x
+    
+        elif ball_x_direction == 1 and ball_x >=  1180:
+    
+            ball_x_direction *= -1
+    
+    
+    
+        #LINKS
+    
+        if ball_x_direction == -1 and ball_x > 20:
+    
+            ball_x -= ball_speed_x
+    
+        elif ball_x_direction == -1 and ball_x <= 20:
+    
+            ball_x_direction *= -1
+    
+    
+    
+    #HOCH
+    
+        if ball_y_direction == 1 and ball_y < 780:
+    
+            ball_y += ball_speed_y
+    
+        elif ball_y_direction == 1 and ball_y >= 780:
+    
+            ball_y_direction *= -1
+    
+    
+    
+        #RUNTER
+    
+        if ball_y_direction == -1 and ball_y > 20:
+    
+            ball_y -= ball_speed_y
+    
+        elif ball_y_direction == -1 and ball_y <= 20:
+    
+            ball_y_direction *= -1
+ 
+    return(ball_x_direction,ball_y_direction,ball_x,ball_y)
+ 
+ 
+ 
+# Score
+ 
+ 
+ 
+score_left = 0
+ 
+score_right = 0
+ 
+ 
+ 
+
+titel_font = pygame.font.Font("PongLegendsImages/GranaPadano.ttf", 100)
+minecraft_font = pygame.font.Font("PongLegendsImages/MinecraftTen-VGORe.ttf", 100)
+layout_font = pygame.font.Font("PongLegendsImages/MinecraftTen-VGORe.ttf", 70)
+closeGame_font = pygame.font.Font("PongLegendsImages/MinecraftTen-VGORe.ttf", 150)
+ 
+
+#Game Over 
+key = False
+ 
+spielmodus = None
+ 
+layoutZahl = 0
+ 
+spielStart = False
+ 
+#Game
+pausierenStoppen = False
+spielPausieren = False
+gameOver = False
+counterStartGame = False
+
+while run:
+    clock.tick(144)
+    # Spielmodus abfrage
+   
+    events = pygame.event.get()
+
+    for event in events:
+        if event.type == pygame.QUIT:
+ 
+                run = False
+        if event.type == pygame.KEYDOWN:
+
+            if event.key == pygame.K_ESCAPE:
+                if spielStart == True and spielPausieren == False and gameOver == False:
+                    spielPausieren = True
+                
+                elif spielStart == True and spielPausieren == True :
+                    spielPausieren = False
+
+                elif gameOver == True:
+                    score_right = 0
+                    score_left = 0
+                else:
+                    run = False
+
+                
+
+
+    if spielmodus == None:
+        mapAuswahlGefragt = True
+        screen.fill(black)
+ 
+ 
+ 
+        titel = titel_font.render(str("PONG LEGENDS"), True, gelb)
+ 
+        singleplayer = layout_font.render(str("Singleplayer"),True,red)
+ 
+        multiplayer = layout_font.render(str("Multiplayer"),True,blue)
+ 
+        pygame.draw.rect(screen, blue, [430, 580, 30, 150])
+ 
+        pygame.draw.circle(screen, white, [screen_length//2+12, 655], 20)
+       
+        pygame.draw.rect(screen, red, [750, 580, 30, 150])
+ 
+        pygame.draw.rect(screen, white, [415, 565, 380, 180],3)
+ 
+ 
+        titel_rect = titel.get_rect(center=(screen_length/2,100))
+ 
+        singleplayer_rect = singleplayer.get_rect(center=(screen_length/2,300))
+ 
+        multiplayer_rect = multiplayer.get_rect(center=(screen_length/2,450))
+ 
+        # #TITEL
+        # pygame.draw.rect(screen,white,[270,50,660,100],5)
+        # # #SINGLEPLAYER
+        # pygame.draw.rect(screen,red,[365,263,470,60],5)
+        # # #MULTIPLAYER
+        # pygame.draw.rect(screen,white,[380,413,440,60],5)
+ 
+ 
+ 
+        screen.blit(titel, titel_rect)
+ 
+        screen.blit(singleplayer, singleplayer_rect)
+ 
+        screen.blit(multiplayer, multiplayer_rect)
+ 
+       
+ 
+        for event in events:
+            # if event.type == pygame.KEYDOWN:
+            #     if event.key == pygame.K_ESCAPE:
+            #         run = False
+ 
+            if event.type == pygame.MOUSEBUTTONDOWN:
+ 
+                if 365 <= mouse[0] <= 835 and 263 <= mouse[1] <= 323:
+ 
+                    spielmodus = True
+                    events = pygame.event.get()
+ 
+                elif 380 <= mouse[0] <= 820 and 413 <= mouse[1] <= 473:
+ 
+                    spielmodus = False
+                    events = pygame.event.get()
+ 
+                elif 270 <= mouse[0] <= 930 and 50 <= mouse[1] <= 150:
+ 
+                    run = False
+ 
+            mouse = pygame.mouse.get_pos()
+ 
+ 
+ 
+ 
+        # Map Auswahl
+    if mapAuswahlGefragt == True and spielmodus == True or spielmodus == False:
+ 
+        screen.fill(black)
+        layout_titel = minecraft_font.render(str("LAYOUT"), True, white)
+        layout1 = layout_font.render(str("Fussball"), True, green)
+        layout2 = layout_font.render(str("Schwarz"), True, dunkelgrau)
+        layout3 = layout_font.render(str("Dark"), True, dunkelgrau)
+       
+        layout_titel_rect = layout_titel.get_rect(center=(screen_length/2,100))
+        layout1_rect = layout1.get_rect(center=(screen_length/2,200))
+        layout2_rect = layout2.get_rect(center=(screen_length/2-350,500))
+        layout3_rect = layout3.get_rect(center=(screen_length/2+350,500))
+       
+        screen.blit(layout2_img,(screen_length//2-480,555))
+        screen.blit(layout3_img,(screen_length//2+230,555))
+        screen.blit(layout1_img,(screen_length//2-130,245))
+ 
+        screen.blit(layout_titel,layout_titel_rect)
+        screen.blit(layout1,layout1_rect)
+        screen.blit(layout2,layout2_rect)
+        screen.blit(layout3,layout3_rect)
+ 
+        pygame.draw.rect(screen, white, [screen_length//2-485,550,260,150],5)
+        pygame.draw.rect(screen, white, [screen_length//2+225,550,260,150],5)
+        pygame.draw.rect(screen, white, [screen_length//2-135,240,260,150],5)
+
+        
+        if layoutZahl == 0:
+            for event in events:
+            
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if screen_length//2-135 <= mouse[0] <= screen_length//2-135+260 and 240 <= mouse[1] <= 390:
+                        layoutZahl = 1
+                        mapAuswahlGefragt = False
+                        alpha = 255
+                    
+                    elif screen_length//2-485 <= mouse[0] <= screen_length//2-485+260 and 550 <= mouse[1] <= 700:
+                        layoutZahl = 2
+                        mapAuswahlGefragt == False
+                        alpha = 255
+                    elif screen_length//2+225 <= mouse[0] <= screen_length//2+225+260 and 550 <= mouse[1] <= 700:
+                        layoutZahl = 3
+                        mapAuswahlGefragt == False
+                        alpha = 255
+                mouse = pygame.mouse.get_pos()
+ 
+
+    if layoutZahl == 1:
+        #Fußballfeld
+ 
+        screen.fill(dunkelgrün)
+ 
+        pygame.draw.rect(screen,white, [0,0,1200,800],5)
+ 
+        pygame.draw.rect(screen,white, [0,200,200,400],5)
+ 
+        pygame.draw.rect(screen,white, [1000,200,200,400],5)
+ 
+        pygame.draw.circle(screen, gray, [600,400,],60,3 )
+ 
+        pygame.draw.line(screen,gray,[600,0],[600,340],3)
+ 
+        pygame.draw.line(screen,gray,[600,460],[600,800],3)
+ 
+       
+ 
+    if layoutZahl == 2:
+        screen.fill(black)
+       
+       
+    if layoutZahl == 3:
+        screen.fill(black)
+        pygame.draw.rect(screen,dunkelgrau, [0,0,1200,800],5)
+ 
+        pygame.draw.rect(screen,dunkelgrau, [0,200,200,400],5)
+ 
+        pygame.draw.rect(screen,dunkelgrau, [1000,200,200,400],5)
+ 
+        pygame.draw.circle(screen, dunkelgrau, [600,400,],60,3 )
+ 
+        pygame.draw.line(screen,dunkelgrau,[600,0],[600,340],3)
+ 
+        pygame.draw.line(screen,dunkelgrau,[600,460],[600,800],3)
+   
+ 
+   
+    if layoutZahl != 0:
+        #Score
+       
+        text1 = layout_font.render(str(score_left),True,white)
+ 
+        screen.blit(text1,(300,70))
+ 
+        text2 = layout_font.render(str(score_right),True,white)
+ 
+        screen.blit(text2,(900,70))
+ 
+ 
+        #einzelnen Komponenten
+ 
+        rechteck = pygame.draw.rect(screen,blue,[50,rechteck_y,25,280])
+ 
+        rechteck2 = pygame.draw.rect(screen,red,[1120,rechteck2_y,25,280])
+ 
+ 
+        ball = pygame.draw.circle(screen, white, [ball_x, ball_y ], 20 )
+ 
+ 
+        #Start
+ 
+        if ball_x == 600 and ball_y == 400 and ball_y_direction == 0 and ball_x_direction == 0 and spielPausieren == False and gameOver == False:
+            
+            spielStart = True
+            rechteck_y = 270
+            rechteck2_y = 270
+
+            startSpace = layout_font.render("(Press SPACE to Start)",True,white)
+            startSpace = startSpace.convert_alpha()
+            startSpace_rect = startSpace.get_rect(center=(screen_length/2,600))
+
+            if counterStartGame == False:
+                
+                alpha -= 1
+                if alpha == 0:
+                    counterStartGame = True
+                    
+            if counterStartGame:
+                
+                alpha += 1
+                if alpha == 255:
+                    counterStartGame = False
+                    
+                
+            startSpace.set_alpha(alpha)
+            screen.blit(startSpace,startSpace_rect)
+            pygame.display.update()
+
+
+            for event in events:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        ball_x_direction = random.choice([1,-1])
+                        
+
+        #pausieren
+        if spielPausieren == True:
+
+            pygame.draw.rect(screen, dunkelgrau, [350,100,500,600])
+            resumeRect = pygame.draw.rect(screen, gray, [450,270, 300, 100])
+            menueRect = pygame.draw.rect(screen, gray, [450,420, 300, 100])
+            quitRect = pygame.draw.rect(screen, gray, [450,570, 300, 100])
+
+
+            pausierenSchrift = minecraft_font.render(str("Pause"), True, white)
+            pausierenSchrift_rect = pausierenSchrift.get_rect(center=(screen_length/2,200))
+            screen.blit(pausierenSchrift,pausierenSchrift_rect)
+
+            resumeSchrift = layout_font.render(str("RESUME"), True, white)
+            resumeSchrift_rect = resumeSchrift.get_rect(center=(screen_length/2,330))
+            screen.blit(resumeSchrift,resumeSchrift_rect)
+
+            menuSchrift = layout_font.render(str("MENU"), True, white)
+            menuSchrift_rect = menuSchrift.get_rect(center=(screen_length/2,480))
+            screen.blit(menuSchrift,menuSchrift_rect)
+
+            quitSchrift = layout_font.render(str("QUIT"), True, white)
+            quitSchrift_rect = quitSchrift.get_rect(center=(screen_length/2,630))
+            screen.blit(quitSchrift,quitSchrift_rect)
+            
+            
+            
+            
+
+        #Ball reset
+ 
+        if ball_x <= 20:
+ 
+            pause = True
+ 
+            score_right = score_right + 1
+ 
+            ball_x = 600
+ 
+            ball_y = 400
+ 
+            ball_x_direction = 0
+ 
+            ball_y_direction = 0
+ 
+            rechteck_y = 270
+ 
+            rechteck2_y = 270
+ 
+            ball_speed_y = 3.6
+ 
+            ball_speed_x = 3.5
+ 
+       
+ 
+            move_down = False
+ 
+            move_down2 = False
+ 
+            move_up = False
+ 
+            move_up2 = False
+ 
+ 
+        if ball_x >= 1180:
+ 
+            pause = True
+ 
+            score_left = score_left + 1
+ 
+            ball_x = 600
+ 
+            ball_y = 400
+ 
+            ball_x_direction = 0
+ 
+            ball_y_direction = 0
+ 
+            rechteck_y = 270
+ 
+            rechteck2_y = 270
+ 
+ 
+            move_down = False
+ 
+            move_down2 = False
+ 
+            move_up = False
+ 
+            move_up2 = False
+ 
+            ball_speed_y = 3.6
+ 
+            ball_speed_x = 3.5
+ 
+ 
+        if ball.colliderect(rechteck) and ball_y_direction == 0:
+ 
+            ball_y_direction = random.choice((-1,1))
+ 
+        if ball.colliderect(rechteck2) and ball_y_direction == 0:
+ 
+            ball_y_direction = random.choice((-1,1))
+ 
+ 
+        #Bot
+ 
+        if spielmodus == True:
+ 
+            rechteck2_y = bot(ball_y, rechteck2_y, ball_x_direction)
+ 
+ 
+        #Ball Movement
+ 
+        ball_x_direction,ball_y_direction,ball_x,ball_y = ball_movement(ball_x_direction, ball_y_direction,ball_x, ball_y,ball_speed_y,ball_speed_x)
+ 
+        ball_x_direction = collusions(ball,rechteck,rechteck2,ball_x_direction,ball_speed_y,ball_speed_x)
+ 
+ 
+        for event in events:
+ 
+ 
+            #EINGABEN
+            if event.type == pygame.KEYDOWN:
+
+                #Movement
+
+                if event.key == pygame.K_s:
+                    if spielPausieren == False and gameOver == False:
+                        move_down = True
+
+
+                if event.key == pygame.K_w:
+                    if spielPausieren == False and gameOver == False:
+                        move_up = True
+
+
+                if spielmodus == False:
+
+                    if event.key == pygame.K_DOWN:
+                        if spielPausieren == False and gameOver == False:
+                            move_down2 = True
+
+
+                    if event.key == pygame.K_UP:
+                        if spielPausieren == False and gameOver == False:
+                            move_up2 = True
+ 
+           
+ 
+ 
+            #STOP Movement
+ 
+            elif event.type == pygame.KEYUP:
+ 
+                if event.key == pygame.K_s :
+ 
+                    move_down = False
+ 
+                if event.key == pygame.K_w :
+ 
+                    move_up = False
+ 
+                if spielmodus == False:
+ 
+                    if event.key == pygame.K_DOWN:
+ 
+                        move_down2 = False
+ 
+                    if event.key == pygame.K_UP:
+ 
+                        move_up2 = False
+ 
+ 
+        ##Game Over
+ 
+        if score_left == 3 or score_right == 3:
+            gameOver = True
+            if score_left == 3:
+                gewinner = "LINKS WON!"
+                farbe = blue
+            elif score_right == 3:
+                gewinner = "RECHTS WON!"
+                farbe = red
+            pygame.draw.circle(screen,farbe,[screen_length/2,310],220,50)
+            pygame.draw.rect(screen, dunkelgrau, [350,190,500,520])
+            resumeRect = pygame.draw.rect(screen, gray, [450,270, 300, 100])
+            menueRect = pygame.draw.rect(screen, gray, [450,420, 300, 100])
+            quitRect = pygame.draw.rect(screen, gray, [450,570, 300, 100])
+
+
+            pausierenSchrift = layout_font.render(gewinner, True, white)
+            pausierenSchrift_rect = pausierenSchrift.get_rect(center=(screen_length/2,200))
+            screen.blit(pausierenSchrift,pausierenSchrift_rect)
+
+            resumeSchrift = layout_font.render("Again", True, white)
+            resumeSchrift_rect = resumeSchrift.get_rect(center=(screen_length/2,330))
+            screen.blit(resumeSchrift,resumeSchrift_rect)
+
+            menuSchrift = layout_font.render(str("MENU"), True, white)
+            menuSchrift_rect = menuSchrift.get_rect(center=(screen_length/2,480))
+            screen.blit(menuSchrift,menuSchrift_rect)
+
+            quitSchrift = layout_font.render(str("QUIT"), True, white)
+            quitSchrift_rect = quitSchrift.get_rect(center=(screen_length/2,630))
+            screen.blit(quitSchrift,quitSchrift_rect)
+ 
+ 
+            
+ 
+ 
+        #Menu Logik
+        if spielPausieren == True or gameOver == True:
+            for event in events:
+                
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        #Resume
+                        if 450 <= mouse[0] <= 750 and 270 <= mouse[1] <= 370 :
+                            if spielPausieren == True:
+                                spielPausieren = False
+                            elif gameOver == True:
+                                score_left = 0
+                                score_right = 0
+                                gameOver = False
+                                
+                                
+
+                            
+                        #Menu zurück gehen
+                        if 450 <= mouse[0] <= 750 and 420 <= mouse[1] <= 520:
+                                spielmodus = None
+                                score_left = 0
+                                score_right = 0
+                                spielmodus = None
+                                mapAuswahlGefragt = True
+                                layoutZahl = 0
+                                ball_x_direction = 0
+                                ball_y_direction = 0
+                                ball_x = 600
+                                ball_y = 400
+                                spielPausieren = False
+                                gameOver = False
+                                spielStart = False
+                                
+                            
+                        #Quit
+                        if 450 <= mouse[0] <= 750 and 570 <= mouse[1] <= 670:
+                            
+                            layoutZahl = 0
+
+                            screen.fill(black)
+
+                            closeSchrift = closeGame_font.render(str("PONG LEGENDS"), True, white)
+                            closeSchrift_rect = closeSchrift.get_rect(center=(screen_length/2,330))
+                            screen.blit(closeSchrift,closeSchrift_rect)
+                            thanksSchrift = minecraft_font.render(str("Thanks for playing!"), True ,white)
+                            thanksSchrift_rect = thanksSchrift.get_rect(center=(screen_length/2, 430))
+                            screen.blit(thanksSchrift,thanksSchrift_rect)
+                            
+                            pygame.display.update()
+                            time.sleep(3)
+                            run = False
+                            
+                    
+                    mouse = pygame.mouse.get_pos()    
+ 
+        # Movement
+ 
+        if move_down:
+
+            rechteck_y += 1.5
+
+        if move_up:
+
+            rechteck_y -= 1.5
+
+        if rechteck_y <= 0:
+ 
+            rechteck_y += 1.5
+ 
+        if rechteck_y >= 520:
+ 
+            rechteck_y -= 1.5
+ 
+ 
+        if spielmodus == True:
+ 
+            if rechteck2_y >= 520:
+ 
+                rechteck2_y -= difficulty_hard
+ 
+ 
+        if spielmodus == False:
+ 
+            if move_down2:
+ 
+                rechteck2_y += 1.5
+               
+            if move_up2:
+ 
+                rechteck2_y -= 1.5
+ 
+            if rechteck2_y <= 0:
+ 
+                rechteck2_y += 1.5
+ 
+            if rechteck2_y >= 520:
+ 
+                rechteck2_y -= 1.5
+ 
+        if ball.colliderect(rechteck) or ball.colliderect(rechteck2):
+ 
+            ball_speed_x += 0.05
+ 
+            ball_speed_y += 0.05
+ 
+    pygame.display.update()
+ 
+pygame.quit
