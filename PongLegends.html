@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Legends - Complete Remake</title>
+    <link rel="stylesheet" href="https://pyscript.net/alpha/pyscript.css">
+    <script defer src="https://pyscript.net/alpha/pyscript.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: black;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 3px solid white;
+            background-color: #222;
+        }
+        .menu, .pause-menu, .game-over-menu {
+            color: white;
+            text-align: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .hidden {
+            display: none;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: white;
+            color: black;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="menu" class="menu">
+        <h1>PONG LEGENDS</h1>
+        <p>Press SPACE to Start</p>
+        <button id="startGame">Start Game</button>
+        <button id="selectLayout">Select Layout</button>
+    </div>
+    <div id="pauseMenu" class="pause-menu hidden">
+        <h2>Paused</h2>
+        <button id="resumeGame">Resume</button>
+        <button id="backToMenu">Back to Menu</button>
+        <button id="quitGame">Quit</button>
+    </div>
+    <div id="gameOverMenu" class="game-over-menu hidden">
+        <h2 id="winnerText"></h2>
+        <button id="restartGame">Play Again</button>
+        <button id="exitToMenu">Exit to Menu</button>
+    </div>
+    <canvas id="gameCanvas" class="hidden" width="1200" height="800"></canvas>
+    <py-script>
+        from js import document, window
+        import math
+
+        # Constants
+        SCREEN_WIDTH = 1200
+        SCREEN_HEIGHT = 800
+        PADDLE_WIDTH = 25
+        PADDLE_HEIGHT = 280
+        BALL_RADIUS = 20
+        PADDLE_SPEED = 6
+        INITIAL_BALL_SPEED = 3.5
+        WINNING_SCORE = 3
+
+        # Variables
+        left_paddle = {"x": 50, "y": SCREEN_HEIGHT / 2 - PADDLE_HEIGHT / 2}
+        right_paddle = {"x": SCREEN_WIDTH - 75, "y": SCREEN_HEIGHT / 2 - PADDLE_HEIGHT / 2}
+        ball = {"x": SCREEN_WIDTH / 2, "y": SCREEN_HEIGHT / 2, "dx": INITIAL_BALL_SPEED, "dy": INITIAL_BALL_SPEED}
+        left_score = 0
+        right_score = 0
+        game_mode = "menu"  # Options: menu, game, pause, gameOver
+        keys = {}
+
+        # Get elements
+        canvas = document.getElementById("gameCanvas")
+        menu = document.getElementById("menu")
+        pause_menu = document.getElementById("pauseMenu")
+        game_over_menu = document.getElementById("gameOverMenu")
+        winner_text = document.getElementById("winnerText")
+        ctx = canvas.getContext("2d")
+
+        # Event listeners for menu
+        def start_game(event):
+            global game_mode, left_score, right_score
+            menu.classList.add("hidden")
+            canvas.classList.remove("hidden")
+            left_score = 0
+            right_score = 0
+            reset_ball()
+            game_mode = "game"
+
+        def resume_game(event):
+            global game_mode
+            pause_menu.classList.add("hidden")
+            game_mode = "game"
+
+        def back_to_menu(event):
+            global game_mode
+            canvas.classList.add("hidden")
+            pause_menu.classList.add("hidden")
+            menu.classList.remove("hidden")
+            game_mode = "menu"
+
+        def restart_game(event):
+            global game_mode, left_score, right_score
+            game_over_menu.classList.add("hidden")
+            canvas.classList.remove("hidden")
+            left_score = 0
+            right_score = 0
+            reset_ball()
+            game_mode = "game"
+
+        def exit_to_menu(event):
+            global game_mode
+            game_over_menu.classList.add("hidden")
+            canvas.classList.add("hidden")
+            menu.classList.remove("hidden")
+            game_mode = "menu"
+
+        document.getElementById("startGame").addEventListener("click", start_game)
+        document.getElementById("resumeGame").addEventListener("click", resume_game)
+        document.getElementById("backToMenu").addEventListener("click", back_to_menu)
+        document.getElementById("restartGame").addEventListener("click", restart_game)
+        document.getElementById("exitToMenu").addEventListener("click", exit_to_menu)
+
+        # Reset ball
+        def reset_ball():
+            global ball
+            ball["x"] = SCREEN_WIDTH / 2
+            ball["y"] = SCREEN_HEIGHT / 2
+            ball["dx"] = INITIAL_BALL_SPEED * (1 if math.random() > 0.5 else -1)
+            ball["dy"] = INITIAL_BALL_SPEED * (1 if math.random() > 0.5 else -1)
+
+        # Update game state
+        def update_game():
+            global left_paddle, right_paddle, ball, left_score, right_score, game_mode
+
+            if game_mode != "game":
+                return
+
+            # Move paddles
+            if "w" in keys and keys["w"] and left_paddle["y"] > 0:
+                left_paddle["y"] -= PADDLE_SPEED
+            if "s" in keys and keys["s"] and left_paddle["y"] < SCREEN_HEIGHT - PADDLE_HEIGHT:
+                left_paddle["y"] += PADDLE_SPEED
+
+            if "ArrowUp" in keys and keys["ArrowUp"] and right_paddle["y"] > 0:
+                right_paddle["y"] -= PADDLE_SPEED
+            if "ArrowDown" in keys and keys["ArrowDown"] and right_paddle["y"] < SCREEN_HEIGHT - PADDLE_HEIGHT:
+                right_paddle["y"] += PADDLE_SPEED
+
+            # Move ball
+            ball["x"] += ball["dx"]
+            ball["y"] += ball["dy"]
+
+            # Ball collision with walls
+            if ball["y"] - BALL_RADIUS < 0 or ball["y"] + BALL_RADIUS > SCREEN_HEIGHT:
+                ball["dy"] *= -1
+
+            # Ball collision with paddles
+            if (
+                ball["x"] - BALL_RADIUS < left_paddle["x"] + PADDLE_WIDTH
+                and left_paddle["y"] < ball["y"] < left_paddle["y"] + PADDLE_HEIGHT
+            ):
+                ball["dx"] *= -1
+
+            if (
+                ball["x"] + BALL_RADIUS > right_paddle["x"]
+                and right_paddle["y"] < ball["y"] < right_paddle["y"] + PADDLE_HEIGHT
+            ):
+                ball["dx"] *= -1
+
+            # Ball out of bounds
+            if ball["x"] - BALL_RADIUS < 0:
+                right_score += 1
+                if right_score >= WINNING_SCORE:
+                    game_mode = "gameOver"
+                    winner_text.innerText = "Right Player Wins!"
+                    game_over_menu.classList.remove("hidden")
+                else:
+                    reset_ball()
+
+            if ball["x"] + BALL_RADIUS > SCREEN_WIDTH:
+                left_score += 1
+                if left_score >= WINNING_SCORE:
+                    game_mode = "gameOver"
+                    winner_text.innerText = "Left Player Wins!"
+                    game_over_menu.classList.remove("hidden")
+                else:
+                    reset_ball()
+
+        # Draw game
+        def draw_game():
+           
